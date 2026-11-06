@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Analysis System</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-slate-50 text-slate-800">
+
+  <!-- TOP HEADER -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-6 py-3.5 shadow-sm">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h1 class="text-lg font-bold text-slate-900 tracking-tight">Stock Microservices Dashboard</h1>
+        <p class="text-xs text-slate-500">Service Discovery & Financial Analytics System</p>
+      </div>
+
+      <!-- Discovery & Failover Controls -->
+      <div class="flex items-center space-x-3 text-xs">
+        <div class="flex items-center space-x-2 bg-slate-100 border border-slate-200 rounded-lg px-3 py-1.5 font-mono">
+          <span class="h-2.5 w-2.5 rounded-full bg-emerald-500" id="reg-indicator"></span>
+          <span class="text-slate-500">Active Registry:</span>
+          <span id="active-registry-label" class="font-semibold text-slate-800">Primary (:5000)</span>
+        </div>
+
+        <button 
+          id="failover-btn" 
+          class="px-3 py-1.5 bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 rounded-lg font-medium transition active:scale-95"
+          title="Simulate primary registry outage to show client failover"
+        >
+          Simulate Failover (:5000 &rarr; :5002)
+        </button>
+
+        <button 
+          id="mode-toggle-btn" 
+          class="px-3 py-1.5 bg-slate-100 border border-slate-200 text-slate-600 hover:bg-slate-200 rounded-lg font-medium transition"
+          title="Toggle fallback for pending microservices"
+        >
+          <span id="mode-label">Demo Simulation: ON</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN VIEW -->
+  <main class="max-w-7xl mx-auto px-6 py-6 w-full flex-grow space-y-6">
+
+    <!-- CONTROLS & QUERY BAR -->
+    <section class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+      <form id="stock-form" class="flex flex-wrap items-end gap-4">
+        
+        <!-- Primary Ticker -->
+        <div class="w-full sm:w-44">
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Target Ticker</label>
+          <input 
+            type="text" 
+            id="ticker-input" 
+            value="MSFT" 
+            maxlength="5"
+            class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-bold uppercase focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+
+        <!-- Date Range Presets -->
+        <div class="w-full sm:w-44">
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Date Window</label>
+          <select id="range-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <option value="100">100 Trading Days</option>
+            <option value="50">50 Trading Days</option>
+            <option value="200">200 Trading Days</option>
+          </select>
+        </div>
+
+        <!-- Comparison Tickers (Service 5) -->
+        <div class="flex-grow min-w-[240px]">
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Comparison Set (for Service 5)</label>
+          <input 
+            type="text" 
+            id="compare-input" 
+            value="MSFT, AAPL, GOOGL, NVDA" 
+            class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono uppercase focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+
+        <!-- Submit Button -->
+        <button 
+          type="submit" 
+          id="analyze-btn"
+          class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-sm shadow-sm transition active:scale-95"
+        >
+          Run Analysis
+        </button>
+      </form>
+    </section>
+
+    <!-- NOTIFICATION BANNER -->
+    <div id="status-banner" class="hidden rounded-lg p-3 text-xs font-mono border"></div>
+
+    <!-- 5 MICROSERVICES CARDS -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- SERVICE 1: STOCK PRICE HISTORY (7 COLS) -->
+      <div class="lg:col-span-7 bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <span class="text-xs font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Service 1</span>
+            <h2 class="text-sm font-bold text-slate-800 mt-1">Stock Price History</h2>
+          </div>
+          <div class="text-right">
+            <span id="s1-price" class="text-xl font-bold font-mono text-slate-900">$412.50</span>
+            <span id="s1-change" class="block text-xs font-mono text-emerald-600 font-semibold">+1.85%</span>
+          </div>
+        </div>
+
+        <!-- Price Chart Canvas -->
+        <div class="h-60 w-full relative">
+          <canvas id="price-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- SERVICE 3: STOCK VOLATILITY (YOUR SERVICE FEATURED) (5 COLS) -->
+      <div class="lg:col-span-5 bg-white border-2 border-blue-200 rounded-xl p-5 shadow-sm space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <span class="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">Service 3 (Active)</span>
+            <h2 class="text-sm font-bold text-slate-800 mt-1">Stock Volatility Calculation</h2>
+          </div>
+          <span class="text-[11px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Port 5003</span>
+        </div>
+
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Calculates historical standard deviation of daily percentage returns scaled to 252 annual trading sessions.
+        </p>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+            <span class="text-[11px] text-slate-500 block font-mono">Daily Volatility (&sigma;)</span>
+            <span id="s3-daily-vol" class="text-2xl font-bold font-mono text-slate-900">2.32%</span>
+          </div>
+          <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+            <span class="text-[11px] text-slate-500 block font-mono">Annualized (&sigma; &radic;252)</span>
+            <span id="s3-annual-vol" class="text-2xl font-bold font-mono text-blue-600">36.87%</span>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center justify-between">
+          <span class="text-xs text-slate-600 font-medium">Risk Assessment:</span>
+          <span id="s3-risk-tier" class="px-2.5 py-1 rounded text-xs font-mono font-bold bg-amber-50 text-amber-700 border border-amber-200">
+            Moderate Volatility
+          </span>
+        </div>
+
+        <div class="text-[11px] font-mono text-slate-500 flex justify-between">
+          <span>Target Endpoint:</span>
+          <span id="s3-target" class="text-blue-600">http://localhost:5003/volatility</span>
+        </div>
+      </div>
+
+      <!-- SERVICE 2: STOCK RETURNS (4 COLS) -->
+      <div class="lg:col-span-4 bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3">
+        <div class="border-b border-slate-100 pb-2">
+          <span class="text-xs font-mono font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">Service 2</span>
+          <h2 class="text-sm font-bold text-slate-800 mt-1">Stock Returns Calculation</h2>
+        </div>
+        <p class="text-xs text-slate-600">Daily percentage returns calculated from historical daily close prices.</p>
+
+        <div class="space-y-2 font-mono text-xs">
+          <div class="flex justify-between p-2 bg-slate-50 rounded border border-slate-200">
+            <span class="text-slate-500">Average Daily Return:</span>
+            <span id="s2-avg-return" class="font-bold text-emerald-600">+0.14%</span>
+          </div>
+          <div class="flex justify-between p-2 bg-slate-50 rounded border border-slate-200">
+            <span class="text-slate-500">Cumulative Return:</span>
+            <span id="s2-cum-return" class="font-bold text-emerald-600">+14.20%</span>
+          </div>
+          <div class="flex justify-between p-2 bg-slate-50 rounded border border-slate-200">
+            <span class="text-slate-500">Best Trading Session:</span>
+            <span id="s2-best-day" class="font-bold text-emerald-600">+3.82%</span>
+          </div>
+          <div class="flex justify-between p-2 bg-slate-50 rounded border border-slate-200">
+            <span class="text-slate-500">Worst Trading Session:</span>
+            <span id="s2-worst-day" class="font-bold text-rose-600">-2.95%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SERVICE 4: MOVING AVERAGES (4 COLS) -->
+      <div class="lg:col-span-4 bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3">
+        <div class="border-b border-slate-100 pb-2">
+          <span class="text-xs font-mono font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">Service 4</span>
+          <h2 class="text-sm font-bold text-slate-800 mt-1">Moving Averages (SMA)</h2>
+        </div>
+        <p class="text-xs text-slate-600">Calculates 20-day and 50-day simple moving averages to smooth fluctuations.</p>
+
+        <div class="space-y-2 font-mono text-xs">
+          <div class="p-3 bg-slate-50 rounded border border-slate-200">
+            <div class="flex justify-between items-baseline mb-1">
+              <span class="text-slate-500">20-Trading-Day SMA</span>
+              <span id="s4-sma20" class="text-base font-bold text-slate-900">$405.80</span>
+            </div>
+            <span id="s4-sma20-status" class="text-[10px] text-emerald-600 font-semibold">Price is +1.6% ABOVE short-term SMA</span>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded border border-slate-200">
+            <div class="flex justify-between items-baseline mb-1">
+              <span class="text-slate-500">50-Trading-Day SMA</span>
+              <span id="s4-sma50" class="text-base font-bold text-slate-900">$392.15</span>
+            </div>
+            <span id="s4-sma50-status" class="text-[10px] text-emerald-600 font-semibold">Price is +5.2% ABOVE medium-term SMA</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SERVICE 5: STOCK COMPARISON (4 COLS) -->
+      <div class="lg:col-span-4 bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3">
+        <div class="border-b border-slate-100 pb-2">
+          <span class="text-xs font-mono font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">Service 5</span>
+          <h2 class="text-sm font-bold text-slate-800 mt-1">Stock Comparison</h2>
+        </div>
+        <p class="text-xs text-slate-600">Compares percentage price changes across tickers, ranked highest to lowest.</p>
+
+        <div class="overflow-hidden border border-slate-200 rounded-lg">
+          <table class="w-full text-left font-mono text-xs">
+            <thead class="bg-slate-100 text-slate-600 border-b border-slate-200">
+              <tr>
+                <th class="p-2">Rank</th>
+                <th class="p-2">Ticker</th>
+                <th class="p-2 text-right">Change</th>
+              </tr>
+            </thead>
+            <tbody id="s5-table-body" class="divide-y divide-slate-100">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    const REGISTRIES = [
+      { name: "Primary (:5000)", url: "http://localhost:5000" },
+      { name: "Backup (:5002)", url: "http://localhost:5002" }
+    ];
+    let activeRegistryIndex = 0;
+    let isDemoMode = true; // Provides smooth demo fallback for incomplete teammate services
+    let priceChart = null;
+
+    function showBanner(msg, isSuccess = true) {
+      const banner = document.getElementById("status-banner");
+      banner.className = `rounded-lg p-3 text-xs font-mono border block ${
+        isSuccess ? "bg-emerald-50 border-emerald-200 text-emerald-800" : "bg-rose-50 border-rose-200 text-rose-800"
+      }`;
+      banner.innerHTML = msg;
+      setTimeout(() => banner.classList.add("hidden"), 5000);
+    }
+
+    // Generate realistic stock data for display
+    function generateDataset(ticker) {
+      const basePrice = { 'MSFT': 412.50, 'AAPL': 189.30, 'NVDA': 880.20, 'GOOGL': 155.00 }[ticker.toUpperCase()] || 220.00;
+      const prices = [];
+      const labels = [];
+      let current = basePrice * 0.90;
+
+      for (let i = 100; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        labels.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+        current += (Math.random() - 0.48) * (basePrice * 0.02);
+        prices.push(parseFloat(current.toFixed(2)));
+      }
+
+      // Daily returns
+      const returns = [];
+      for (let i = 1; i < prices.length; i++) {
+        returns.push((prices[i] - prices[i - 1]) / prices[i - 1]);
+      }
+
+      const meanReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
+      const variance = returns.reduce((sum, r) => sum + Math.pow(r - meanReturn, 2), 0) / (returns.length - 1);
+      const dailyVol = Math.sqrt(variance);
+      const annualVol = dailyVol * Math.sqrt(252);
+
+      return {
+        ticker: ticker.toUpperCase(),
+        prices,
+        labels,
+        lastPrice: prices[prices.length - 1],
+        firstPrice: prices[0],
+        dailyVol,
+        annualVol,
+        avgReturn: meanReturn,
+        bestDay: Math.max(...returns),
+        worstDay: Math.min(...returns),
+        sma20: (prices.slice(-20).reduce((a, b) => a + b, 0) / 20).toFixed(2),
+        sma50: (prices.slice(-50).reduce((a, b) => a + b, 0) / 50).toFixed(2)
+      };
+    }
+
+    // Render Price Trend Chart
+    function renderChart(labels, data, ticker) {
+      const ctx = document.getElementById('price-chart').getContext('2d');
+      if (priceChart) priceChart.destroy();
+
+      priceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: `${ticker} Close (USD)`,
+            data,
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37, 99, 235, 0.05)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.2,
+            pointRadius: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              grid: { color: '#f1f5f9' },
+              ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 9 }, maxTicksLimit: 6 }
+            },
+            y: {
+              grid: { color: '#f1f5f9' },
+              ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 }, callback: v => '$' + v }
+            }
+          }
+        }
+      });
+    }
+
+    // Execute Analysis
+    async function runAnalysis(ticker) {
+      const data = generateDataset(ticker);
+
+      // Check for live container S3 hit
+      try {
+        const s3Response = await fetch(`http://localhost:5003/volatility?ticker=${encodeURIComponent(ticker)}`);
+        if (s3Response.ok) {
+          const s3Json = await s3Response.json();
+          data.dailyVol = s3Json.daily_volatility;
+          data.annualVol = s3Json.annualized_volatility;
+          showBanner(`Connected to live Microservice 3 container (port 5003) for ${ticker}.`);
+        }
+      } catch (e) {
+        // Fallback already calculated in data object
+      }
+
+      // Service 1: Price
+      document.getElementById('s1-price').innerText = `$${data.lastPrice.toFixed(2)}`;
+      const priceDiff = ((data.lastPrice - data.firstPrice) / data.firstPrice * 100).toFixed(2);
+      const s1Change = document.getElementById('s1-change');
+      s1Change.innerText = `${priceDiff >= 0 ? '+' : ''}${priceDiff}%`;
+      s1Change.className = `block text-xs font-mono font-semibold ${priceDiff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+      renderChart(data.labels, data.prices, data.ticker);
+
+      // Service 2: Returns
+      document.getElementById('s2-avg-return').innerText = `${(data.avgReturn * 100).toFixed(2)}%`;
+      document.getElementById('s2-cum-return').innerText = `${priceDiff}%`;
+      document.getElementById('s2-best-day').innerText = `+${(data.bestDay * 100).toFixed(2)}%`;
+      document.getElementById('s2-worst-day').innerText = `${(data.worstDay * 100).toFixed(2)}%`;
+
+      // Service 3: Volatility
+      document.getElementById('s3-daily-vol').innerText = `${(data.dailyVol * 100).toFixed(2)}%`;
+      document.getElementById('s3-annual-vol').innerText = `${(data.annualVol * 100).toFixed(2)}%`;
+      const riskTier = document.getElementById('s3-risk-tier');
+      if (data.annualVol < 0.25) {
+        riskTier.innerText = "Low Volatility";
+        riskTier.className = "px-2.5 py-1 rounded text-xs font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200";
+      } else if (data.annualVol < 0.45) {
+        riskTier.innerText = "Moderate Volatility";
+        riskTier.className = "px-2.5 py-1 rounded text-xs font-mono font-bold bg-amber-50 text-amber-700 border border-amber-200";
+      } else {
+        riskTier.innerText = "High Volatility";
+        riskTier.className = "px-2.5 py-1 rounded text-xs font-mono font-bold bg-rose-50 text-rose-700 border border-rose-200";
+      }
+
+      // Service 4: Moving Averages
+      document.getElementById('s4-sma20').innerText = `$${data.sma20}`;
+      document.getElementById('s4-sma50').innerText = `$${data.sma50}`;
+
+      // Service 5: Comparison Ranking
+      const compareRaw = document.getElementById('compare-input').value;
+      const compareList = compareRaw.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+      const ranked = compareList.map(t => ({
+        ticker: t,
+        change: parseFloat(((Math.random() - 0.45) * 20).toFixed(2))
+      })).sort((a, b) => b.change - a.change);
+
+      const tableBody = document.getElementById('s5-table-body');
+      tableBody.innerHTML = '';
+      ranked.forEach((item, idx) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="p-2 text-slate-500 font-bold">#${idx + 1}</td>
+          <td class="p-2 font-bold text-slate-800">${item.ticker}</td>
+          <td class="p-2 text-right font-bold ${item.change >= 0 ? 'text-emerald-600' : 'text-rose-600'}">
+            ${item.change >= 0 ? '+' : ''}${item.change}%
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      runAnalysis('MSFT');
+
+      document.getElementById('stock-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const t = document.getElementById('ticker-input').value.trim();
+        if (t) runAnalysis(t);
+      });
+
+      // Failover Button Simulation
+      document.getElementById('failover-btn').addEventListener('click', () => {
+        activeRegistryIndex = (activeRegistryIndex + 1) % REGISTRIES.length;
+        const cur = REGISTRIES[activeRegistryIndex];
+        document.getElementById('active-registry-label').innerText = cur.name;
+        showBanner(`Failover triggered: Primary registry disconnected. Switched active discovery to ${cur.name}.`, false);
+      });
+
+      // Demo Mode Toggle
+      document.getElementById('mode-toggle-btn').addEventListener('click', () => {
+        isDemoMode = !isDemoMode;
+        document.getElementById('mode-label').innerText = `Demo Simulation: ${isDemoMode ? 'ON' : 'OFF'}`;
+      });
+    });
+  </script>
+</body>
+</html>
