@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  registry-primary:
+    image: aashkaaa/stock-registry:latest
+    container_name: registry-primary
+    ports:
+      - "5000:5000"
+    restart: always
+    networks:
+      - stock-net
+
+  registry-backup:
+    image: aashkaaa/stock-registry:latest
+    container_name: registry-backup
+    ports:
+      - "5002:5000"
+    restart: always
+    networks:
+      - stock-net
+
+  stock-s3:
+    image: aashkaaa/stock-s3:latest
+    container_name: s3-volatility
+    ports:
+      - "5003:5003"
+    environment:
+      - REGISTRY_HOST=host.docker.internal
+      - ALPHA_VANTAGE_API_KEY=DMG4FUZ3FZOZEYR8
+      - SERVICE_URL=http://host.docker.internal:5003
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - registry-primary
+      - registry-backup
+    restart: always
+    networks:
+      - stock-net
+
+networks:
+  stock-net:
+    driver: bridge
