@@ -3,3 +3,6 @@ A microservices-based stock analysis application developed for CS4471 Software A
 
 For S4 setup, Alpha Vantage configuration, and testing, see
 [Moving Averages data integration](docs/s4-data-source.md).
+
+For HTTP endpoints, input rules, and error codes, see the
+[S4 API contract](docs/s4-api.md).

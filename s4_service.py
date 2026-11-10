@@ -1,7 +1,7 @@
 """Retrieve Alpha Vantage history and feed S4's moving-average core.
 
 Run ``python s4_service.py SYMBOL START_DATE END_DATE --exchange NYSE``.
-HTTP routes and registry lifecycle remain separate integration tasks.
+HTTP routes are in s4_app.py. Registry lifecycle remains a separate task.
 """
 
 import argparse
@@ -13,6 +13,7 @@ import pandas_market_calendars as mcal
 
 from alpha_vantage import AlphaVantageClient, StockDataError
 from s4_moving_averages import MovingAverageError, _parse_date, calculate_moving_averages
+from s4_validation import InputValidationError, validate_inputs
 
 
 def trading_sessions(start: date, end: date, exchange: str) -> list[str]:
@@ -20,7 +21,7 @@ def trading_sessions(start: date, end: date, exchange: str) -> list[str]:
     try:
         calendar = mcal.get_calendar(exchange)
     except (RuntimeError, ValueError, KeyError):
-        raise MovingAverageError("INVALID_INPUT", f"Unknown exchange calendar: {exchange}.") from None
+        raise InputValidationError("exchange must name a supported exchange calendar.", "exchange") from None
     # A full year supplies sufficient lookback for normal exchange schedules.
     # The returned list retains only the 49 sessions needed by the SMA core.
     try:
@@ -40,13 +41,14 @@ def fetch_moving_averages(
     Explicitly select the symbol's exchange calendar. NYSE is the default for
     the project's US-listed examples; no exchange is inferred from a ticker.
     """
-    if not isinstance(symbol, str) or not symbol.strip():
-        raise MovingAverageError("INVALID_INPUT", "A non-empty stock symbol is required.")
-    symbol = symbol.strip().upper()
+    inputs = validate_inputs(symbol, start_date, end_date, exchange)
+    symbol, exchange = inputs["symbol"], inputs["exchange"]
     start, end = _parse_date(start_date), _parse_date(end_date)
-    if start > end or end > date.today():
-        raise MovingAverageError("INVALID_INPUT", "Dates must be ordered and must not be in the future.")
-    sessions = trading_sessions(start, end, exchange)
+    try:
+        sessions = trading_sessions(start, end, exchange)
+    except InputValidationError as error:
+        error.symbol = symbol
+        raise
     requested = [day for day in sessions if day >= start_date]
     if not requested:
         raise StockDataError("INSUFFICIENT_DATA", f"No trading sessions in the requested interval for {symbol}.", symbol)

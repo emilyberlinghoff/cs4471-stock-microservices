@@ -38,7 +38,7 @@ function's `exchange` parameter. The default `NYSE` suits the project's US-liste
 examples; it does not automatically identify arbitrary international exchanges
 from a ticker. Calendar names come from `pandas_market_calendars`.
 
-The same integration is callable by a future HTTP adapter:
+The same integration is callable by the [HTTP API](s4-api.md) or Python code:
 
 ```python
 from s4_service import fetch_moving_averages
@@ -81,8 +81,9 @@ in responses because they can expose credentials. HTTP redirects are rejected.
 
 Each upstream call has a 10-second requests timeout and no automatic retries.
 This bounds socket inactivity; it is not a hard 15-second end-to-end deadline
-against a continuously streaming response. HTTP deadlines/status mappings, full
-consumer validation (row 34), and registry lifecycle (row 35) remain separate tasks.
+against a continuously streaming response. Hard HTTP deadlines and registry
+lifecycle (row 35) remain separate tasks. HTTP status mappings and consumer
+validation (row 34) are implemented in the [S4 HTTP API](s4-api.md).
 The CLI prints successful JSON to stdout and errors to stderr, exiting with code
 1 for service errors.
 
@@ -90,9 +91,10 @@ The CLI prints successful JSON to stdout and errors to stderr, exiting with code
 python -m unittest discover -s tests -v
 ```
 
-All 30 tests run offline, covering the calculation core plus mocked HTTP-to-SMA
+The 30 calculation/source tests run offline, covering the core plus mocked HTTP-to-SMA
 integration, real exchange-calendar holidays, missing/invalid prices, compact
 coverage, provider control messages, non-success HTTP statuses, bad JSON,
 credential-safe errors, timeouts, and successful recovery on the next request.
+Another 15 tests verify the HTTP API, for 45 tests in total.
 Authenticated live retrieval requires your own entitled key and has not been
 verified in the development environment.
