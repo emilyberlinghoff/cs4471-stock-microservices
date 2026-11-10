@@ -84,6 +84,6 @@ This implements the calculation portions of S5 FR3.2–FR6.2 with basic argument
 checks. The Python function and result fields are a proposed internal contract
 for the HTTP interface task. Alpha Vantage access and upstream errors (row 39)
 are now implemented; see [data source setup and integration](s5-data-source.md).
-The HTTP adapter and full validation (row 40), and registration/deregistration
-(row 41) remain separate tasks. No cloud-performance or live-data claims are
-made by the offline tests.
+The HTTP adapter and validation (row 40) are also implemented; see
+[the S5 API contract](s5-api.md). Registration/deregistration (row 41) remains a
+separate task. No cloud-performance or live-data claims are made by offline tests.

@@ -3,14 +3,13 @@
 import argparse
 import json
 import sys
-from collections.abc import Mapping
 from concurrent.futures import FIRST_EXCEPTION, ThreadPoolExecutor, wait
-from datetime import date
 
 import pandas_market_calendars as mcal
 
 from s5_alpha_vantage import AlphaVantageClient
 from s5_stock_comparison import StockComparisonError, _parse_date, compare_stocks
+from s5_validation import InputValidationError, validate_inputs
 
 
 LOOKUP_TIMEOUT_SECONDS = 12
@@ -51,35 +50,20 @@ def fetch_stock_comparison(
     override it per uppercase symbol, e.g. {"SHOP.TRT": "TSX"}. Exchange identity
     is explicit, never guessed from a symbol or from returned price dates.
     """
-    if isinstance(symbols, (str, bytes)) or symbols is None:
-        raise StockComparisonError("INVALID_INPUT", "Supply 2–5 distinct stock symbols.")
-    try:
-        symbols = list(symbols)
-    except TypeError:
-        raise StockComparisonError("INVALID_INPUT", "Supply 2–5 distinct stock symbols.") from None
-    if not 2 <= len(symbols) <= 5 or any(not isinstance(s, str) or not s.strip() for s in symbols):
-        raise StockComparisonError("INVALID_INPUT", "Supply 2–5 distinct stock symbols.")
-    symbols = [symbol.strip().upper() for symbol in symbols]
-    if len(set(symbols)) != len(symbols):
-        raise StockComparisonError("INVALID_INPUT", "Stock symbols must be distinct.")
+    inputs = validate_inputs(symbols, start_date, end_date, exchange, exchanges)
+    symbols, exchange, exchanges = inputs["symbols"], inputs["exchange"], inputs["exchanges"]
     start, end = _parse_date(start_date), _parse_date(end_date)
-    if start > end or end > date.today():
-        raise StockComparisonError("INVALID_INPUT", "Dates must be ordered and must not be in the future.")
-    exchanges = {} if exchanges is None else exchanges
-    if not isinstance(exchanges, Mapping) or any(symbol not in symbols for symbol in exchanges):
-        raise StockComparisonError("INVALID_INPUT", "Exchange overrides must use requested uppercase symbols.")
 
     calendars, calendar_names, cached = {}, {}, {}
     for symbol in symbols:
         name = exchanges.get(symbol, exchange)
-        if not isinstance(name, str) or not name:
-            raise StockComparisonError("INVALID_INPUT", f"An exchange calendar is required for {symbol}.", symbol)
         if name not in cached:
             try:
                 calendar = mcal.get_calendar(name)
                 cached[name] = [day.date().isoformat() for day in calendar.valid_days(start_date=start, end_date=end)]
             except (RuntimeError, ValueError, KeyError, OverflowError):
-                raise StockComparisonError("INVALID_INPUT", f"Invalid calendar or date range for {symbol}: {name}.", symbol) from None
+                raise InputValidationError("Unsupported exchange calendar or date range.",
+                                           "exchanges" if symbol in exchanges else "exchange", symbol) from None
         calendars[symbol] = cached[name]
         calendar_names[symbol] = name
         if not calendars[symbol]:

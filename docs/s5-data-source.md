@@ -95,8 +95,8 @@ A hard process-level HTTP deadline remains part of deployment/HTTP integration.
 Injected test clients must support concurrent calls.
 
 The CLI prints successful JSON to stdout and errors to stderr, with exit code 1
-for service errors. HTTP routes, full consumer validation (row 40), and registry
-lifecycle (row 41) remain separate tasks.
+for service errors. HTTP routes and consumer validation (row 40) are implemented;
+see [the S5 HTTP API](s5-api.md). Registry lifecycle (row 41) remains separate.
 
 ## Verification
 
@@ -104,10 +104,11 @@ lifecycle (row 41) remain separate tasks.
 python -m unittest discover -s tests -v
 ```
 
-All 35 offline tests pass: 16 core tests and 19 integration tests. Coverage
+The 35 core/source tests pass: 16 core tests and 19 integration tests. Coverage
 includes mocked HTTP-to-ranking integration, five-stock retrieval, concurrency,
 mixed exchange calendars, holidays, missing/interior/invalid observations,
 compact coverage, provider and HTTP errors, credential redaction, timeouts,
-recovery, and CLI exit behavior. Authenticated live retrieval requires your own
-entitled key and is not verified in this development environment. Cloud
+recovery, and CLI exit behavior. An additional 15 HTTP tests bring the full suite
+to 50 tests. Authenticated live retrieval requires your own entitled key and is
+not verified in this development environment. Cloud
 performance has not been measured by these offline tests.
