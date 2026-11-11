@@ -1,0 +1,9 @@
+
+services:
+  s2:
+    build: .
+    ports:
+      - "5001:5001"
+    env_file:
+      - .env
+    restart: unless-stopped

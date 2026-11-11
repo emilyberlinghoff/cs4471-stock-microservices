@@ -1,0 +1,112 @@
+openapi: 3.0.3
+info:
+  title: S2 Stock Returns API
+  version: 1.0.0
+  description: Calculate daily percentage returns from Alpha Vantage raw closes.
+servers:
+  - url: http://localhost:5001
+paths:
+  /api/v1/stock-returns:
+    get:
+      operationId: getStockReturns
+      summary: Get a dated daily return series
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema: {type: string, example: IBM}
+        - name: start_date
+          in: query
+          required: true
+          schema: {type: string, format: date, example: '2026-01-05'}
+        - name: end_date
+          in: query
+          required: true
+          schema: {type: string, format: date, example: '2026-01-07'}
+      responses:
+        '200':
+          description: Dated series
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ReturnsResponse'}
+        '400': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '422': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+        '504': {$ref: '#/components/responses/Error'}
+    post:
+      operationId: postStockReturns
+      summary: Get daily returns from JSON input
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [symbol, start_date, end_date]
+              properties:
+                symbol: {type: string, example: IBM}
+                start_date: {type: string, format: date, example: '2026-01-05'}
+                end_date: {type: string, format: date, example: '2026-01-07'}
+      responses:
+        '200':
+          description: Dated series
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ReturnsResponse'}
+        '400': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '422': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+        '504': {$ref: '#/components/responses/Error'}
+  /health:
+    get:
+      responses:
+        '200':
+          description: Liveness
+  /service-info:
+    get:
+      responses:
+        '200':
+          description: Registry metadata
+components:
+  schemas:
+    ReturnsResponse:
+      type: object
+      required: [service_id, symbol, requested_start_date, requested_end_date,
+        effective_start_date, effective_end_date, price_basis, number_of_returns, returns]
+      properties:
+        service_id: {type: string, example: S2}
+        symbol: {type: string, example: IBM}
+        requested_start_date: {type: string, format: date}
+        requested_end_date: {type: string, format: date}
+        effective_start_date: {type: string, format: date}
+        effective_end_date: {type: string, format: date}
+        price_basis: {type: string, enum: [raw_close]}
+        number_of_returns: {type: integer, minimum: 1}
+        returns:
+          type: array
+          items:
+            type: object
+            required: [date, return_percent]
+            properties:
+              date: {type: string, format: date}
+              return_percent: {type: number, description: Percentage points rounded to four decimals}
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: {type: string}
+            message: {type: string}
+  responses:
+    Error:
+      description: Structured error
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ErrorEnvelope'}
