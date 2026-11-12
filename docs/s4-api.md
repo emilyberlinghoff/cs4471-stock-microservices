@@ -84,7 +84,7 @@ reason for incomplete windows. No valid moving-average window anywhere returns
 python -m unittest discover -s tests -v
 ```
 
-All 45 offline tests pass: 30 calculation/source tests and 15 HTTP tests. Flask's
+All 56 offline tests pass: 30 calculation/source tests, 15 HTTP tests, and 11 registry lifecycle tests. Flask's
 test client exercises real S4 calculations with a mocked stock client, including
 normalization, types, dates, international symbol syntax, calendars, ambiguous
 requests, JSON parsing, body limits, status mappings, framework errors, safe

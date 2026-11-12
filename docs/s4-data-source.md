@@ -95,6 +95,6 @@ The 30 calculation/source tests run offline, covering the core plus mocked HTTP-
 integration, real exchange-calendar holidays, missing/invalid prices, compact
 coverage, provider control messages, non-success HTTP statuses, bad JSON,
 credential-safe errors, timeouts, and successful recovery on the next request.
-Another 15 tests verify the HTTP API, for 45 tests in total.
+Another 15 tests verify the HTTP API, for 45 calculation/source/HTTP tests. Another 11 lifecycle tests bring the suite to 56.
 Authenticated live retrieval requires your own entitled key and has not been
 verified in the development environment.

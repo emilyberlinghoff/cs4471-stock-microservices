@@ -29,7 +29,7 @@ Create the virtual environment once. On later visits, activate it with
 python -m unittest discover -s tests -v
 ```
 
-Expected: **45 tests**, ending with `OK`. These tests use synthetic prices and
+Expected: **56 tests**, ending with `OK`. These tests use synthetic prices and
 mocked provider requests, including normal calculations and error cases.
 
 ### 3. Configure real stock data (optional for health/validation testing)
@@ -124,3 +124,9 @@ incorrect, or that branch's requirements have not been installed.
 More details: [data source integration](docs/s4-data-source.md) and
 [HTTP API contract](docs/s4-api.md). Authenticated live retrieval still requires
 your own entitled key; the automated tests verify behavior with mocked data.
+
+## Registry lifecycle
+
+See [registration and shutdown](docs/registry-lifecycle.md) for startup leases,
+primary/backup configuration, the graceful `s4_server.py` runner, and
+the current registry’s lease-expiry removal limitation.

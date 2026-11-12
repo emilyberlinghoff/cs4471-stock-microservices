@@ -8,6 +8,7 @@ from werkzeug.exceptions import HTTPException, UnsupportedMediaType
 from s4_moving_averages import MovingAverageError
 from s4_service import fetch_moving_averages
 from s4_validation import InputValidationError
+from registry_lifecycle import RegistryLifecycle, service_metadata
 
 
 ERROR_STATUSES = {
@@ -54,9 +55,18 @@ def _request_inputs():
             "end_date": data.get("end_date"), "exchange": data.get("exchange", "NYSE")}
 
 
-def create_app(*, stock_client=None):
+def create_app(*, stock_client=None, registry=None):
     app = Flask(__name__)
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024
+    metadata = service_metadata("S4", "Moving Averages", "20- and 50-trading-day simple moving averages.", "/moving-averages", 5004)
+    lifecycle = registry if registry is not None else RegistryLifecycle.from_environment(metadata)
+    app.extensions["registry_lifecycle"] = lifecycle
+    if lifecycle is not None:
+        lifecycle.start()
+
+    @app.get("/service-info")
+    def service_info():
+        return jsonify(metadata)
 
     @app.get("/health")
     def health():
