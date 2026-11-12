@@ -1,0 +1,14 @@
+{
+  "test": "local registry source + S4/S5 HTTP processes",
+  "registered_services": [
+    "S4",
+    "S5"
+  ],
+  "remaining_services": [
+    "S5"
+  ],
+  "s4_shutdown_removal_seconds": 11.41,
+  "s5_health_status": 200,
+  "registry_image_app_layer": "sha256:501627b42b87019f45d0c49260220a5ebbf4ec177170b3421f3548894695a716",
+  "scope": "local; not Docker/cloud; lease expiry not immediate deregistration"
+}

@@ -1,0 +1,50 @@
+{
+  "prepared_on": "2026-11-11",
+  "owner": "Emily Berlinghoff",
+  "source_workbook": "02_Services_Requirements_and_Project_Plan-4.xlsx",
+  "source_workbook_sha256": "0ce059fc64e32ffa50f2fd192230483c16961af79c57d7c9c27d68747db3ff42",
+  "service_commits": {
+    "s4": "49424953c98c560fa727dfeb775574aba431ff85",
+    "s5": "d1c170ccfa200f64c095ec27c1bb2d2954fe373e"
+  },
+  "tests": {
+    "S4": 56,
+    "S5": 61
+  },
+  "pending": [
+    "API key and full-history entitlement",
+    "Actual one-year live retrieval and source validation",
+    "Immediate registry deletion and retained descriptions",
+    "Gordon quality views",
+    "GUI/cloud acceptance",
+    "Human rehearsal and final team review",
+    "OWL submission"
+  ],
+  "local_registry_test": {
+    "test": "local registry source + S4/S5 HTTP processes",
+    "registered_services": [
+      "S4",
+      "S5"
+    ],
+    "remaining_services": [
+      "S5"
+    ],
+    "s4_shutdown_removal_seconds": 11.41,
+    "s5_health_status": 200,
+    "registry_image_app_layer": "sha256:501627b42b87019f45d0c49260220a5ebbf4ec177170b3421f3548894695a716",
+    "scope": "local; not Docker/cloud; lease expiry not immediate deregistration"
+  },
+  "files": {
+    "04_Demo_and_Acceptance.docx": "5e579999fba0ad602ef4d8453fab57079229597dcfeab3f1ecab043a2dc2774c",
+    "03_PR2_Support_Presentation.pptx": "ebd04f089a5fa71e1b1b36059a5c671032b9f11a175caf9d9dde021386f40a80",
+    "06_Plan_Preview.pdf": "86d6be31ff5f96402504c1b91085ca3013e44f54b748fafd2bf86c7c7dc01b26",
+    "00_Title_and_Contents.docx": "cc8351b5497a09bd10623bb06539247c77fbea4e54fccd251d0b77a01c581418",
+    "05_AI_Comparison_and_Lessons.pdf": "cd7403ad8dbdb0edd20644587007de71bc4e1d679ec9e306b04e023fe196913a",
+    "README.md": "d956496ac2b774315a0237929aac7420c5bd48b47b4ff26544a24424d62609cf",
+    "02_Project_Plan_Emily_Update.xlsx": "1fa93ea8f97483b72e202f4abd432ab10bcbfb000ba0bafec01d49baa3fbd8b2",
+    "01_Architecture_and_Communication.docx": "530f0d5413e72f331951ee886f1dbcc829282f12caa14ead2d51f3f895f1b95e",
+    "04_Demo_and_Acceptance.pdf": "b9db5df59cb35b6de1f00420ded6a26225067357fe649b36cd59718ab9fe97a0",
+    "01_Architecture_and_Communication.pdf": "1256c28bd932d2d6c5e7b5d2313508374c5ec810583412c0dec8b6e0bbadef27",
+    "05_AI_Comparison_and_Lessons.docx": "c1912fe799df023ab1d12e1a62d768fad66312742bc29c978e6531ce7dba8b60"
+  }
+}
