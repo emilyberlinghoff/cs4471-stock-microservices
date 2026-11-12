@@ -109,6 +109,6 @@ includes mocked HTTP-to-ranking integration, five-stock retrieval, concurrency,
 mixed exchange calendars, holidays, missing/interior/invalid observations,
 compact coverage, provider and HTTP errors, credential redaction, timeouts,
 recovery, and CLI exit behavior. An additional 15 HTTP tests bring the full suite
-to 50 tests. Authenticated live retrieval requires your own entitled key and is
+to 50 calculation/source/HTTP tests. Another 11 lifecycle tests bring the suite to 61. Authenticated live retrieval requires your own entitled key and is
 not verified in this development environment. Cloud
 performance has not been measured by these offline tests.

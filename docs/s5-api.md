@@ -87,7 +87,7 @@ running-worker cancellation and socket-timeout limits.
 python -m unittest discover -s tests -v
 ```
 
-All 50 offline tests pass: 35 core/source tests and 15 HTTP tests. HTTP tests
+All 61 offline tests pass: 35 core/source tests, 15 HTTP tests, and 11 registry lifecycle tests. HTTP tests
 exercise real comparisons with a mocked stock client, normalization, five-stock
 requests, international symbols, dates/types/counts, mixed exchange overrides,
 JSON parsing and body limits, error status mappings, safe internal errors,

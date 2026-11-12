@@ -8,6 +8,7 @@ from werkzeug.exceptions import HTTPException, UnsupportedMediaType
 from s5_stock_comparison import StockComparisonError
 from s5_service import fetch_stock_comparison
 from s5_validation import InputValidationError
+from registry_lifecycle import RegistryLifecycle, service_metadata
 
 
 ERROR_STATUSES = {
@@ -63,9 +64,18 @@ def _request_inputs():
             "exchanges": data.get("exchanges")}
 
 
-def create_app(*, stock_client=None):
+def create_app(*, stock_client=None, registry=None):
     app = Flask(__name__)
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024
+    metadata = service_metadata("S5", "Stock Comparison", "Ranks 2–5 stocks by percentage price change over common dates.", "/comparison", 5005)
+    lifecycle = registry if registry is not None else RegistryLifecycle.from_environment(metadata)
+    app.extensions["registry_lifecycle"] = lifecycle
+    if lifecycle is not None:
+        lifecycle.start()
+
+    @app.get("/service-info")
+    def service_info():
+        return jsonify(metadata)
 
     @app.get("/health")
     def health():
